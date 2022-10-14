@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "matrix-spotify-bot"
+version = "0.1.0"
+description = ""
+authors = ["Silvio Ankermann <silvio@booq.org>"]
+license = "AGPLv3"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+maubot = "^0.3.1"
+spotipy = "^2.20.0"
+
+[tool.poetry.dev-dependencies]
+isort = "^5.10.1"
+black = "^22.10.0"
+
+[tool.isort]
+profile = "black"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

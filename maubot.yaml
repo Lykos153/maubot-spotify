@@ -1,0 +1,7 @@
+maubot: 0.1.0
+id: org.booq.spotifybot
+version: 0.1.0
+license: AGPLv3
+modules:
+  - spotifybot
+main_class: SpotifyBot
