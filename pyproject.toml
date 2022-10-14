@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "maubot-spotify"
+version = "0.1.0"
+description = ""
+authors = ["Silvio Ankermann <silvio@booq.org>"]
+license = "AGPLv3"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+maubot = "^0.3.1"
+spotipy = "^2.20.0"
+aiohttp-session = {extras = ["secure"], version = "^2.11.0"}
+spotipy2 = "^0.6"
+
+[tool.poetry.dev-dependencies]
+isort = "^5.10.1"
+black = "^22.10.0"
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "^5.0.4"
+
+[tool.isort]
+profile = "black"
+
+[tool.black]
+line-length = 79
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
