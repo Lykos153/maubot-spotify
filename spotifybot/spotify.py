@@ -1,11 +1,17 @@
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
-scope = "user-library-read"
 
-sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope))
+class Spotify:
+    def __init__(self):
+        scope = "playlist-modify-private"
+        sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope))
 
-results = sp.current_user_saved_tracks()
-for idx, item in enumerate(results["items"]):
-    track = item["track"]
-    print(idx, track["artists"][0]["name"], " – ", track["name"])
+        pl_id = "0E77gEsMy0AuWi5Oi3RHLX"
+        song_url = ["6zmEDMJ9MA4C4ZoPngpz0a"]
+
+        result = sp.playlist_add_items(pl_id, song_url)
+        print(result)
+
+
+s = Spotify()
