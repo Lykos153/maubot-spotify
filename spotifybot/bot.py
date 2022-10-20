@@ -10,9 +10,9 @@ class SpotifyBot(Plugin):
         await evt.reply("Hello, World!")
 
     @spotify.subcommand(help="Do subcommand things")
-    async def help(self, evt: MessageEvent) -> None:
+    async def login(self, evt: MessageEvent) -> None:
         await evt.react("subcommand!")
 
-    @command.passive("https://open.spotify.com")
-    async def command(self, evt: MessageEvent, match: Tuple[str]) -> None:
-        await evt.react("🐈️")
+    @command.passive("(.*)(https://open.spotify.com/track/[a-zA-Z0-9]*)( ?.*)")
+    async def add_track(self, evt: MessageEvent, match: Tuple[str]) -> None:
+        await evt.reply(str(match))
