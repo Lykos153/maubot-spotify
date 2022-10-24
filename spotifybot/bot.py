@@ -9,7 +9,7 @@ class SpotifyBot(Plugin):
     async def spotify(self, evt: MessageEvent) -> None:
         await evt.reply("Hello, World!")
 
-    @spotify.subcommand(help="Do subcommand things")
+    @spotify.subcommand(help="Login to your spotify account")
     async def login(self, evt: MessageEvent) -> None:
         await evt.react("subcommand!")
 

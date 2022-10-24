@@ -2,6 +2,26 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
 
+class SpotifyElement:
+    def __init__(self, id: str):
+        self.id = id
+
+
+class Playlist(SpotifyElement):
+    def __init__(self, id):
+        super().__init__(id)
+
+
+class Album(SpotifyElement):
+    def __init__(self, id):
+        super().__init__(id)
+
+
+class Song(SpotifyElement):
+    def __init__(self, id):
+        super().__init__(id)
+
+
 class SpotifyClient:
     def __init__(self):
         self.scope = "playlist-modify-private"
@@ -9,15 +29,17 @@ class SpotifyClient:
             auth_manager=SpotifyOAuth(scope=self.scope, open_browser=True)
         )
 
-    def add_song_to_playlist(self, playlist: str, song: str):
-        pl_id = playlist
-        song_url = [song]
+    def add_song_to_playlist(self, playlist: Playlist, song: Song):
+        pl_id = playlist.id
+        song_url = [song.id]
 
         result = self.sp.playlist_add_items(pl_id, song_url)
         print(result)
 
 
 s = SpotifyClient()
-s.add_song_to_playlist("0E77gEsMy0AuWi5Oi3RHLX", "6zmEDMJ9MA4C4ZoPngpz0a")
+s.add_song_to_playlist(
+    Playlist("0E77gEsMy0AuWi5Oi3RHLX"), Song("6zmEDMJ9MA4C4ZoPngpz0a")
+)
 
 # spotipy.SpotifyClientCredentials()
