@@ -2,8 +2,6 @@
   "extends": [
     "config:base"
   ],
-    "docs/**"
-  ],
   "pre-commit": {
     "enabled": true
   }
