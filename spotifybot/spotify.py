@@ -11,6 +11,9 @@ class Playlist(SpotifyElement):
     def __init__(self, id):
         super().__init__(id)
 
+    def name(self) -> str:
+        pass
+
 
 class Album(SpotifyElement):
     def __init__(self, id):
@@ -37,9 +40,9 @@ class SpotifyClient:
         print(result)
 
 
-s = SpotifyClient()
-s.add_song_to_playlist(
-    Playlist("0E77gEsMy0AuWi5Oi3RHLX"), Song("6zmEDMJ9MA4C4ZoPngpz0a")
-)
+# s = SpotifyClient()
+# s.add_song_to_playlist(
+#     Playlist("0E77gEsMy0AuWi5Oi3RHLX"), Song("6zmEDMJ9MA4C4ZoPngpz0a")
+# )
 
 # spotipy.SpotifyClientCredentials()
