@@ -1,18 +1,28 @@
-from typing import Tuple
+from typing import Tuple, Type
 
 from maubot import MessageEvent, Plugin
 from maubot.handlers import command
+from mautrix.util.config import BaseProxyConfig
 
+from .config import Config
 from .data import Data
 
 
 class SpotifyBot(Plugin):
+    @classmethod
+    def get_config_class(cls) -> Type[BaseProxyConfig]:
+        return Config
+
     async def start(self) -> None:
+        self.config.load_and_update()
         self.data = Data()
 
-    @command.new(require_subcommand=True)
+    def get_command_name(self) -> str:
+        return self.config["command_prefix"]
+
+    @command.new(name=get_command_name, require_subcommand=True)
     async def spotify(self, evt: MessageEvent) -> None:
-        await evt.reply("Hello, World!")
+        pass
 
     @spotify.subcommand(help="Login to your spotify account")
     async def login(self, evt: MessageEvent) -> None:

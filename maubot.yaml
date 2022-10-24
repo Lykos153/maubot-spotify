@@ -5,3 +5,6 @@ license: AGPLv3
 modules:
   - spotifybot
 main_class: SpotifyBot
+config: true
+extra_files:
+  - base-config.yaml
