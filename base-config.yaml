@@ -4,5 +4,5 @@ allowlist:
 # The prefix for the main command without the !
 command_prefix: spotify
 
-#spotify_client_id: REQUIRED
-#spotify_client_secret: REQUIRED
+spotify_client_id: REQUIRED
+spotify_client_secret: REQUIRED

@@ -8,3 +8,4 @@ main_class: SpotifyBot
 config: true
 extra_files:
   - base-config.yaml
+webapp: true

@@ -1,8 +1,10 @@
 from typing import Tuple, Type
 
+from aiohttp.web import Request, Response
 from maubot import MessageEvent, Plugin
-from maubot.handlers import command
+from maubot.handlers import command, web
 from mautrix.util.config import BaseProxyConfig
+from spotipy.oauth2 import SpotifyOAuth
 
 from .config import Config
 from .data import Data
@@ -16,6 +18,12 @@ class SpotifyBot(Plugin):
     async def start(self) -> None:
         self.config.load_and_update()
         self.data = Data()
+        # self.log.debug(self.webapp_url.human_repr())
+        self.spotify_oauth = SpotifyOAuth(
+            client_id=self.config["spotify_client_id"],
+            client_secret=self.config["spotify_client_secret"],
+            redirect_uri=self.webapp_url.human_repr() + "/callback",
+        )
 
     def get_command_name(self) -> str:
         return self.config["command_prefix"]
@@ -26,7 +34,7 @@ class SpotifyBot(Plugin):
 
     @spotify.subcommand(help="Login to your spotify account")
     async def login(self, evt: MessageEvent) -> None:
-        await evt.react("subcommand!")
+        await evt.reply(self.spotify_oauth.get_authorize_url())
 
     @spotify.subcommand(help="Set the room playlist")
     @command.argument("playlist", pass_raw=False, required=True)
@@ -57,3 +65,9 @@ class SpotifyBot(Plugin):
             f"{evt.sender} shared album in {evt.room_id}: {match[2]}"
         )
         await self.client.send_text(room_id=evt.room_id, text=str(match))
+
+    @web.get("/callback")
+    async def auth_callback(self, req: Request) -> Response:
+        self.log.debug(f"Received callback: {req.rel_url.query}")
+        token = self.spotify_oauth.get_access_token(req.rel_url.query["code"])
+        self.log.debug(f"Token: {token}")
