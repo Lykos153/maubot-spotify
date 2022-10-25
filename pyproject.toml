@@ -9,6 +9,7 @@ license = "AGPLv3"
 python = "^3.10"
 maubot = "^0.3.1"
 spotipy = "^2.20.0"
+aiohttp-session = {extras = ["secure"], version = "^2.11.0"}
 
 [tool.poetry.dev-dependencies]
 isort = "^5.10.1"

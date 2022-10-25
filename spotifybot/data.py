@@ -17,3 +17,16 @@ class Data:
 
     def set_spotify_user(self, mxid: str, spotify_user: SpotifyClient):
         self._users[mxid] = spotify_user
+
+
+class TempData:
+    def __init__(self):
+        self._data: dict[str, str] = {}
+        # TODO: expire or use expiringdict oder so
+
+    def put(self, key: str, value: str) -> None:
+        if key not in self._data:
+            self._data[key] = value
+
+    def get(self, key: str) -> str:
+        return self._data.get(key)

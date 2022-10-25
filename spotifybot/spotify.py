@@ -1,5 +1,4 @@
 import spotipy
-from spotipy.oauth2 import SpotifyOAuth
 
 
 class SpotifyElement:
@@ -26,11 +25,9 @@ class Song(SpotifyElement):
 
 
 class SpotifyClient:
-    def __init__(self):
+    def __init__(self, token):
         self.scope = "playlist-modify-private"
-        self.sp = spotipy.Spotify(
-            auth_manager=SpotifyOAuth(scope=self.scope, open_browser=True)
-        )
+        self.sp = spotipy.Spotify(auth=token)
 
     def add_song_to_playlist(self, playlist: Playlist, song: Song):
         pl_id = playlist.id
