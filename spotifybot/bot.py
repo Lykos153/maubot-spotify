@@ -105,7 +105,7 @@ class SpotifyBot(Plugin):
             self.log.debug("No playlist ID found")
             await evt.reply("Invalid playlist link")
             return
-        self._set_room_playlist(evt.room_id, pl_id)
+        await self._set_room_playlist(evt.room_id, pl_id)
         await self.client.send_text(
             room_id=evt.room_id, text=f"Room playlist was set to {pl_id}"
         )
