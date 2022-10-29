@@ -30,10 +30,7 @@ class SpotifyClient:
         self.sp = spotipy.Spotify(auth=token)
 
     def add_song_to_playlist(self, playlist: Playlist, song: Song):
-        pl_id = playlist.id
-        song_url = [song.id]
-
-        result = self.sp.playlist_add_items(pl_id, song_url)
+        result = self.sp.playlist_add_items(playlist, [song])
         print(result)
 
 
