@@ -1,5 +1,6 @@
 import datetime
 import re
+import sqlite3
 from typing import Tuple, Type, Union
 from uuid import uuid4
 
@@ -10,7 +11,8 @@ from aiohttp_session import (
 )
 from aiohttp_session import get_session, session_middleware
 from maubot import MessageEvent, Plugin
-from maubot.handlers import command, web
+from maubot.handlers import command, event, web
+from mautrix.types import EventType, Membership, StateEvent
 from mautrix.util.async_db import Connection, UpgradeTable
 from mautrix.util.config import BaseProxyConfig
 from spotipy2.auth.token import Token
@@ -38,8 +40,8 @@ class AuthData:
 async def upgrade_v1(conn: Connection) -> None:
     await conn.execute(
         """CREATE TABLE users (
-            mxid   TEXT PRIMARY KEY,
-            token TEXT NOT NULL
+            mxid    TEXT PRIMARY KEY,
+            token   TEXT NOT NULL
         )"""
     )
 
@@ -48,8 +50,8 @@ async def upgrade_v1(conn: Connection) -> None:
 async def upgrade_v2(conn: Connection) -> None:
     await conn.execute(
         """CREATE TABLE room_playlists (
-            room   TEXT PRIMARY KEY,
-            playlist TEXT NOT NULL
+            room        TEXT PRIMARY KEY,
+            playlist    TEXT NOT NULL
         )"""
     )
 
@@ -60,6 +62,28 @@ async def upgrade_v3(conn: Connection) -> None:
     await conn.execute("ALTER TABLE users ADD expires_at INTEGER;")
     await conn.execute("ALTER TABLE users ADD refresh_token TEXT;")
     await conn.execute("ALTER TABLE users ADD scopes TEXT;")
+
+
+@upgrade_table.register(description="Store active rooms")
+async def upgrade_v4(conn: Connection) -> None:
+    await conn.execute("CREATE TABLE active_rooms")
+
+
+@upgrade_table.register(description="Fix active_rooms")
+async def upgrade_v5(conn: Connection) -> None:
+    pass
+
+
+@upgrade_table.register(description="Fix active_rooms")
+async def upgrade_v6(conn: Connection) -> None:
+    await conn.execute("DROP TABLE active_rooms")
+    await conn.execute(
+        """CREATE TABLE active_rooms (
+            room         TEXT PRIMARY KEY,
+            joined_first INTEGER,
+            joined_last  INTEGER
+        )"""
+    )
 
 
 class SpotifyBot(Plugin):
@@ -79,6 +103,28 @@ class SpotifyBot(Plugin):
         self.log.debug(self.webapp_url.human_repr())
         self.webapp.add_middleware(session_middleware(SimpleCookieStorage()))
         # self.log.debug(len(self.webapp._middleware), self.webapp._middleware)
+
+    @event.on(EventType.ROOM_MEMBER)
+    async def handle_join(self, evt: StateEvent) -> None:
+        if (
+            evt.state_key == self.client.mxid
+            and evt.content.membership == Membership.JOIN
+        ):
+            self.log.debug(
+                f"Got join event for {evt.room_id} at {evt.timestamp}"
+            )
+            is_latest = await self._room_set_active(evt.room_id, evt.timestamp)
+            if is_latest:
+                self.log.info(f"Joined room {evt.room_id} at {evt.timestamp}")
+                client_name = await self.client.get_displayname(
+                    self.client.mxid
+                )
+                await self.client.send_text(
+                    room_id=evt.room_id,
+                    text=f"Hi, I am {client_name}! \n"
+                    f"Send `!{self.config['command_prefix']} help`"
+                    " to see what I can do.",
+                )
 
     def get_command_name(self) -> str:
         return self.config["command_prefix"]
@@ -280,6 +326,40 @@ class SpotifyBot(Plugin):
         """
         row = await self.database.fetchrow(q, room)
         return row["playlist"] if row else None
+
+    async def _room_set_active(self, room: str, joined_timestamp: int) -> bool:
+        """
+        Returns True if timestamp is new or later than the last recorded one
+        """
+        q = """
+            INSERT INTO active_rooms (room, joined_first, joined_last)
+                    VALUES ($1, $2, $2)
+        """
+        try:
+            await self.database.execute(q, room, joined_timestamp)
+        except sqlite3.IntegrityError:
+            _, last = await self._room_active_since(room)
+            if last is not None and last >= joined_timestamp:
+                return False
+            q = """
+                UPDATE active_rooms SET joined_last=$2 WHERE room=$1
+            """
+            await self.database.execute(q, room, joined_timestamp)
+        return True
+
+    async def _room_active_since(self, room: str) -> (int, int):
+        q = """
+            SELECT joined_first, joined_last FROM active_rooms WHERE room=$1
+        """
+        row = await self.database.fetchrow(q, room)
+        return (
+            (
+                row["joined_first"],
+                row["joined_last"],
+            )
+            if row
+            else None
+        )
 
     def _get_playlist_id(self, playlist_url: str) -> Union[str, None]:
         m = RE_SPOTIY_PLAYLIST.match(playlist_url)
