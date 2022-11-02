@@ -1,4 +1,5 @@
 import datetime
+import functools
 import re
 import sqlite3
 from typing import Tuple, Type, Union
@@ -12,7 +13,7 @@ from aiohttp_session import (
 from aiohttp_session import get_session, session_middleware
 from maubot import MessageEvent, Plugin
 from maubot.handlers import command, event, web
-from mautrix.types import EventType, Membership, StateEvent
+from mautrix.types import BaseRoomEvent, EventType, Membership, StateEvent
 from mautrix.util.async_db import Connection, UpgradeTable
 from mautrix.util.config import BaseProxyConfig
 from spotipy2.auth.token import Token
@@ -86,6 +87,20 @@ async def upgrade_v6(conn: Connection) -> None:
     )
 
 
+def only_if_active(func):
+    @functools.wraps(func)
+    async def wrapper(self: "SpotifyBot", evt: BaseRoomEvent, *args, **kwargs):
+        _, joined_last = await self._room_active_since(evt.room_id)
+        if evt.timestamp < joined_last:
+            self.log.debug(
+                f"Skipped message {evt.event_id} because it's too old"
+            )
+            return
+        await func(self, evt, *args, **kwargs)
+
+    return wrapper
+
+
 class SpotifyBot(Plugin):
     @classmethod
     def get_config_class(cls) -> Type[BaseProxyConfig]:
@@ -140,6 +155,7 @@ class SpotifyBot(Plugin):
         pass
 
     @spotify.subcommand(help="Info about login and room state")
+    @only_if_active
     async def info(self, evt: MessageEvent) -> None:
         user_logged_in = await self._is_logged_in(evt.sender)
         room_list = await self._get_room_playlist(evt.room_id)
@@ -150,11 +166,13 @@ class SpotifyBot(Plugin):
         await self.client.send_text(room_id=evt.room_id, text=reply)
 
     @spotify.subcommand(help="Login to your spotify account")
+    @only_if_active
     async def login(self, evt: MessageEvent) -> None:
         await evt.reply(self._get_auth_url(evt.sender))
 
     @spotify.subcommand(help="Set the room playlist")
     @command.argument("playlist", pass_raw=False, required=True)
+    @only_if_active
     async def set_playlist(self, evt: MessageEvent, playlist: str) -> None:
         if not playlist:
             # TODO: How to get original event to reply to if message was edited
@@ -178,6 +196,7 @@ class SpotifyBot(Plugin):
     @command.passive(
         "(.*)(https://open.spotify.com/track/([a-zA-Z0-9]*))( ?.*)"
     )
+    @only_if_active
     async def add_track(self, evt: MessageEvent, match: Tuple[str]) -> None:
         track_id = match[3]
         self.log.debug(
@@ -220,6 +239,7 @@ class SpotifyBot(Plugin):
     @command.passive(
         "(.*)(https://open.spotify.com/album/([a-zA-Z0-9]*))( ?.*)"
     )
+    @only_if_active
     async def add_album(self, evt: MessageEvent, match: Tuple[str]) -> None:
         self.log.debug(
             f"{evt.sender} shared album in {evt.room_id}: {match[3]}"
