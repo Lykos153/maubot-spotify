@@ -13,13 +13,12 @@ from maubot import MessageEvent, Plugin
 from maubot.handlers import command, web
 from mautrix.util.async_db import Connection, UpgradeTable
 from mautrix.util.config import BaseProxyConfig
-from spotipy2.auth.oauth_flow import OauthFlow
 from spotipy2.auth.token import Token
 from spotipy2.exceptions import SpotifyException
 
 from .config import Config
 from .data import Data, TempData
-from .spotify import SpotifyClient
+from .spotify import OauthFlow, SpotifyClient
 
 RE_SPOTIY_PLAYLIST = re.compile(
     "(.*)(https://open.spotify.com/playlist/([a-zA-Z0-9]*))( ?.*)"
