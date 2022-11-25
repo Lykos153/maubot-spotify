@@ -141,7 +141,7 @@ class SpotifyBot(Plugin):
                     "If you haven't done so already, connect your "
                     f"Spotify account with `!{prefix} login`.\n"
                     "Each room can be connected to a playlist. "
-                    f"Use !`{prefix} set-playlist` to set a new "
+                    f"Use `!{prefix} set-playlist` to set a new "
                     "playlist for this room.\n"
                     f"Send `!{prefix} help`"
                     " to see what I can do.",
