@@ -162,7 +162,7 @@ class SpotifyBot(Plugin):
 
         reply = f'You are {"" if user_logged_in else "not "}logged in.\n'
         pl_str = self._get_playlist_url(room_list) if room_list else "not set"
-        reply += f"Room playlist is {pl_str}."
+        reply += f"Room playlist is {pl_str}"
         await self.client.send_text(room_id=evt.room_id, text=reply)
 
     @spotify.subcommand(help="Login to your spotify account")
