@@ -7,7 +7,7 @@ license = "AGPLv3"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-maubot = "^0.3.1"
+maubot = "^0.4.0"
 spotipy = "^2.20.0"
 aiohttp-session = {extras = ["secure"], version = "^2.11.0"}
 spotipy2 = "^0.6"
